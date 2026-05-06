@@ -242,11 +242,10 @@ async function loadFeaturedHome() {
     return;
   }
   grid.innerHTML = data.map(buildProductCard).join('');
-  initReveal();
-  gsap.from('#featuredGrid .product-card', {
-    scrollTrigger: { trigger: '#featuredGrid', start: 'top 80%' },
-    y: 40, opacity: 0, duration: 0.5, stagger: 0.12, ease: 'power3.out'
-  });
+  gsap.fromTo('#featuredGrid .product-card',
+    { y: 40, opacity: 0 },
+    { y: 0, opacity: 1, duration: 0.5, stagger: 0.12, ease: 'power3.out', delay: 0.1 }
+  );
 }
 
 loadFeaturedHome();

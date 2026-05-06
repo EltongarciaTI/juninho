@@ -132,7 +132,7 @@ function render(reset) {
       return;
     }
     grid.innerHTML = slice.map(buildProductCard).join('');
-    gsap.from('#launchGrid .product-card', { y: 30, opacity: 0, stagger: 0.08, duration: 0.5, ease: 'power3.out' });
+    gsap.fromTo('#launchGrid .product-card', { y: 30, opacity: 0 }, { y: 0, opacity: 1, stagger: 0.08, duration: 0.5, ease: 'power3.out' });
   } else {
     slice.forEach(p => grid.insertAdjacentHTML('beforeend', buildProductCard(p)));
   }

@@ -317,10 +317,10 @@ function renderPage(reset = false) {
       return;
     }
     grid.innerHTML = slice.map(buildProductCard).join('');
-    gsap.from('#productsGrid .product-card', { y: 30, opacity: 0, duration: 0.4, stagger: 0.06, ease: 'power3.out' });
+    gsap.fromTo('#productsGrid .product-card', { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, stagger: 0.06, ease: 'power3.out' });
   } else {
     slice.forEach(p => { grid.insertAdjacentHTML('beforeend', buildProductCard(p)); });
-    gsap.from('#productsGrid .product-card:nth-last-child(-n+12)', { y: 30, opacity: 0, duration: 0.4, stagger: 0.06, ease: 'power3.out' });
+    gsap.fromTo('#productsGrid .product-card:nth-last-child(-n+12)', { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, stagger: 0.06, ease: 'power3.out' });
   }
 
   page++;
