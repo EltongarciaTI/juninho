@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Relatórios — Juninho Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div style="font-size:28px">👑</div>
+        <div class="sidebar-logo-text"><span>Juninho</span><span>Multi Marcas</span></div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Principal</span>
+      <a href="dashboard.html" class="nav-link"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="pedidos.html" class="nav-link"><span class="nav-icon">📦</span> Pedidos</a>
+      <a href="vendas.html" class="nav-link"><span class="nav-icon">📝</span> Anotar Venda</a>
+      <span class="nav-section-label">Catálogo</span>
+      <a href="produtos.html" class="nav-link"><span class="nav-icon">👕</span> Produtos</a>
+      <a href="promocoes.html" class="nav-link"><span class="nav-icon">🔥</span> Promoções</a>
+      <span class="nav-section-label">Relatórios</span>
+      <a href="relatorios.html" class="nav-link active"><span class="nav-icon">📈</span> Relatórios</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user" onclick="logout()">
+        <div class="user-avatar">J</div>
+        <div class="user-info"><div class="user-name">Administrador</div><div class="user-role">Sair ↗</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="topbar">
+      <button class="topbar-menu-btn" id="topbarMenuBtn">☰</button>
+      <span class="topbar-title">Relatórios</span>
+      <div class="topbar-actions">
+        <select class="form-select" id="periodSelect" onchange="loadAll()" style="width:160px;padding:8px 12px;font-size:12px">
+          <option value="7">Últimos 7 dias</option>
+          <option value="30" selected>Últimos 30 dias</option>
+          <option value="90">Últimos 90 dias</option>
+          <option value="365">Último ano</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- KPIs -->
+      <div class="stats-grid" style="margin-bottom:24px">
+        <div class="stat-card gold"><div class="stat-icon">💰</div><div class="stat-label">Faturamento</div><div class="stat-value gold" id="kpiFat">—</div></div>
+        <div class="stat-card green"><div class="stat-icon">📊</div><div class="stat-label">Vendas</div><div class="stat-value green" id="kpiVendas">—</div></div>
+        <div class="stat-card"><div class="stat-icon">🎯</div><div class="stat-label">Ticket Médio</div><div class="stat-value" id="kpiTicket">—</div></div>
+        <div class="stat-card"><div class="stat-icon">📦</div><div class="stat-label">Pedidos Online</div><div class="stat-value" id="kpiPedidos">—</div></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px">
+        <!-- Faturamento por dia -->
+        <div class="card">
+          <div class="card-title">Faturamento Diário</div>
+          <div style="overflow-x:auto">
+            <div class="chart-bar-container" id="dailyChart" style="min-width:300px;height:200px"></div>
+          </div>
+        </div>
+        <!-- Por forma de pagamento -->
+        <div class="card">
+          <div class="card-title">Por Forma de Pagamento</div>
+          <div id="paymentChart" style="display:flex;flex-direction:column;gap:12px;margin-top:8px"></div>
+        </div>
+      </div>
+
+      <!-- Top Produtos -->
+      <div class="card" style="margin-bottom:24px">
+        <div class="card-title">Produtos Mais Vendidos</div>
+        <div class="table-wrapper" style="margin-top:0">
+          <table>
+            <thead><tr><th>Produto</th><th>Categoria</th><th>Qtd Vendida</th><th>Faturado</th></tr></thead>
+            <tbody id="topProductsTable">
+              <tr><td colspan="4" style="text-align:center;padding:20px;color:var(--gray-500)">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Vendas por categoria -->
+      <div class="card">
+        <div class="card-title">Desempenho por Categoria</div>
+        <div id="categoryReport" style="display:flex;flex-direction:column;gap:14px;margin-top:8px"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/config.js"></script>
+<script src="../js/admin/auth.js"></script>
+<script>
+function getPeriodStart(days) {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return d.toISOString();
+}
+
+async function loadAll() {
+  const days = parseInt(document.getElementById('periodSelect').value);
+  const since = getPeriodStart(days);
+  const [{ data: sales }, { data: orders }] = await Promise.all([
+    db.from('sales').select('*').gte('created_at', since),
+    db.from('orders').select('total,created_at').gte('created_at', since)
+  ]);
+
+  renderKpis(sales || [], orders || []);
+  renderDailyChart(sales || [], days);
+  renderPaymentChart(sales || []);
+  renderTopProducts(sales || []);
+  renderCategoryReport(sales || []);
+}
+
+function renderKpis(sales, orders) {
+  const fat = sales.reduce((s, r) => s + Number(r.total_price), 0);
+  const count = sales.length;
+  const ticket = count > 0 ? fat / count : 0;
+  document.getElementById('kpiFat').textContent = formatPrice(fat);
+  document.getElementById('kpiVendas').textContent = count;
+  document.getElementById('kpiTicket').textContent = formatPrice(ticket);
+  document.getElementById('kpiPedidos').textContent = orders.length;
+}
+
+function renderDailyChart(sales, days) {
+  const limit = Math.min(days, 30);
+  const dates = [];
+  for (let i = limit - 1; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    dates.push(d.toISOString().split('T')[0]);
+  }
+  const totals = {};
+  dates.forEach(d => totals[d] = 0);
+  sales.forEach(s => {
+    const d = s.created_at.split('T')[0];
+    if (totals[d] !== undefined) totals[d] += Number(s.total_price);
+  });
+  const max = Math.max(...Object.values(totals), 1);
+  const chart = document.getElementById('dailyChart');
+  chart.innerHTML = dates.map(d => {
+    const h = Math.round((totals[d] / max) * 100);
+    const label = new Date(d + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+    return `<div class="chart-bar-wrap">
+      <div class="chart-bar gold" style="height:${h}%"></div>
+      <div class="chart-bar-label" style="font-size:8px">${label}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderPaymentChart(sales) {
+  const methods = {};
+  sales.forEach(s => { methods[s.payment_method] = (methods[s.payment_method] || 0) + Number(s.total_price); });
+  const total = Object.values(methods).reduce((a, b) => a + b, 1);
+  const ICONS = { dinheiro: '💵', pix: '⚡', credito: '💳', debito: '💲' };
+  document.getElementById('paymentChart').innerHTML = Object.entries(methods)
+    .sort((a, b) => b[1] - a[1])
+    .map(([m, v]) => `
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+          <span>${ICONS[m] || '💰'} ${m}</span>
+          <span style="font-weight:700;color:var(--gold)">${formatPrice(v)} (${Math.round(v/total*100)}%)</span>
+        </div>
+        <div style="background:var(--surface-2);border-radius:4px;height:8px">
+          <div style="background:var(--gold);height:8px;border-radius:4px;width:${Math.round(v/total*100)}%"></div>
+        </div>
+      </div>`).join('') || '<div style="color:var(--gray-500);font-size:12px">Sem dados</div>';
+}
+
+function renderTopProducts(sales) {
+  const products = {};
+  sales.forEach(s => {
+    if (!products[s.product_name]) products[s.product_name] = { cat: s.category, qty: 0, total: 0 };
+    products[s.product_name].qty += s.quantity;
+    products[s.product_name].total += Number(s.total_price);
+  });
+  const sorted = Object.entries(products).sort((a, b) => b[1].total - a[1].total).slice(0, 10);
+  document.getElementById('topProductsTable').innerHTML = sorted.length === 0
+    ? '<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--gray-500)">Sem dados</td></tr>'
+    : sorted.map(([name, data], i) => `
+        <tr>
+          <td><span style="color:var(--gold);font-weight:800;margin-right:8px">#${i+1}</span>${name}</td>
+          <td style="font-size:12px;color:var(--gray-400)">${data.cat || '—'}</td>
+          <td style="font-weight:700">${data.qty}</td>
+          <td style="font-weight:800;color:var(--success)">${formatPrice(data.total)}</td>
+        </tr>`).join('');
+}
+
+function renderCategoryReport(sales) {
+  const cats = {};
+  sales.forEach(s => {
+    if (!s.category) return;
+    if (!cats[s.category]) cats[s.category] = { qty: 0, total: 0 };
+    cats[s.category].qty += s.quantity;
+    cats[s.category].total += Number(s.total_price);
+  });
+  const sorted = Object.entries(cats).sort((a, b) => b[1].total - a[1].total);
+  const maxTotal = sorted[0]?.[1].total || 1;
+  document.getElementById('categoryReport').innerHTML = sorted.length === 0
+    ? '<div style="color:var(--gray-500);font-size:12px">Sem dados no período</div>'
+    : sorted.map(([cat, d]) => `
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:13px;font-weight:600">${cat}</span>
+            <div style="display:flex;gap:16px;font-size:12px">
+              <span style="color:var(--gray-400)">${d.qty} vendas</span>
+              <span style="font-weight:800;color:var(--gold)">${formatPrice(d.total)}</span>
+            </div>
+          </div>
+          <div style="background:var(--surface-2);border-radius:4px;height:8px">
+            <div style="background:var(--gold);height:8px;border-radius:4px;width:${Math.round(d.total/maxTotal*100)}%;transition:width 0.6s ease"></div>
+          </div>
+        </div>`).join('');
+}
+
+loadAll();
+</script>
+</body>
+</html>

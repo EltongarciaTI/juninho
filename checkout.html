@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout — Juninho Multi Marcas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/components.js"></script>
+  <style>
+    .checkout-wrapper { max-width: 640px; margin: 0 auto; padding: 80px 16px 40px; }
+    .checkout-back { display:inline-flex;align-items:center;gap:8px;color:var(--gray-400);font-size:13px;margin-bottom:24px;cursor:pointer;transition:var(--transition); }
+    .checkout-back:hover { color:var(--gold); }
+    .order-summary { background:var(--gray-800);border:1px solid var(--gray-700);border-radius:var(--radius-lg);padding:20px;margin-bottom:24px; }
+    .order-summary-title { font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--gray-400);margin-bottom:16px;font-weight:700; }
+    .order-item { display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--gray-700);font-size:14px; }
+    .order-item:last-child { border:none; }
+    .order-item-name { color:var(--gray-200); }
+    .order-item-price { color:var(--white);font-weight:700; }
+    .order-total { display:flex;justify-content:space-between;align-items:center;padding-top:12px;margin-top:4px;border-top:1px solid var(--gray-600); }
+    .order-total-label { font-size:12px;color:var(--gray-400);text-transform:uppercase;letter-spacing:1px; }
+    .order-total-value { font-size:22px;font-weight:900; }
+    .checkout-form { display:flex;flex-direction:column;gap:20px; }
+    .payment-section { background:var(--gray-800);border:1px solid var(--gray-700);border-radius:var(--radius-lg);padding:20px; }
+    .payment-section-title { font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--gray-400);margin-bottom:16px;font-weight:700; }
+    .mp-container { margin-top:16px;min-height:80px; }
+    #checkout-btn { width:100%;padding:16px;font-size:15px; }
+    .secure-badge { text-align:center;font-size:11px;color:var(--gray-500);margin-top:12px;display:flex;align-items:center;justify-content:center;gap:6px; }
+    .pix-section { display:none;text-align:center;padding:20px; }
+    .pix-qr { width:200px;height:200px;background:var(--white);border-radius:var(--radius);margin:16px auto;display:flex;align-items:center;justify-content:center;font-size:48px; }
+    .pix-copy { width:100%;margin-top:12px; }
+    .pix-code { background:var(--gray-700);border:1px solid var(--gray-600);border-radius:var(--radius);padding:10px 14px;font-size:12px;word-break:break-all;color:var(--gray-200);margin:12px 0;text-align:left; }
+  </style>
+</head>
+<body>
+<script>renderNavbar();</script>
+<div class="checkout-wrapper">
+  <a href="index.html" class="checkout-back">← Voltar à loja</a>
+  <h1 class="checkout-title" style="font-size:24px;font-weight:900;text-transform:uppercase;letter-spacing:2px;margin-bottom:24px">
+    💳 Finalizar Pedido
+  </h1>
+
+  <!-- Resumo do Pedido -->
+  <div class="order-summary">
+    <div class="order-summary-title">Resumo do Pedido</div>
+    <div id="orderItems"></div>
+    <div class="order-total">
+      <span class="order-total-label">Total</span>
+      <span class="order-total-value" id="orderTotal">R$ 0,00</span>
+    </div>
+  </div>
+
+  <!-- Formulário -->
+  <div class="checkout-form">
+    <!-- Dados Pessoais -->
+    <div class="payment-section">
+      <div class="payment-section-title">📋 Seus Dados</div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="form-group">
+          <label class="form-label">Nome Completo</label>
+          <input type="text" class="form-input" id="customerName" placeholder="Seu nome">
+        </div>
+        <div class="form-group">
+          <label class="form-label">WhatsApp</label>
+          <input type="tel" class="form-input" id="customerPhone" placeholder="(75) 99999-9999">
+        </div>
+        <div class="form-group">
+          <label class="form-label">E-mail (opcional)</label>
+          <input type="email" class="form-input" id="customerEmail" placeholder="seu@email.com">
+        </div>
+      </div>
+    </div>
+
+    <!-- Forma de Pagamento -->
+    <div class="payment-section">
+      <div class="payment-section-title">💳 Forma de Pagamento</div>
+      <div class="payment-methods">
+        <div class="payment-method selected" data-method="pix" onclick="selectPayment(this,'pix')">
+          <div class="payment-method-icon">⚡</div>
+          <div class="payment-method-name">PIX</div>
+        </div>
+        <div class="payment-method" data-method="credit" onclick="selectPayment(this,'credit')">
+          <div class="payment-method-icon">💳</div>
+          <div class="payment-method-name">Crédito</div>
+        </div>
+        <div class="payment-method" data-method="debit" onclick="selectPayment(this,'debit')">
+          <div class="payment-method-icon">💲</div>
+          <div class="payment-method-name">Débito</div>
+        </div>
+      </div>
+
+      <!-- PIX -->
+      <div id="pixSection" class="mp-container">
+        <div style="background:var(--gray-700);border:1px solid rgba(201,168,76,0.3);border-radius:var(--radius);padding:14px;margin-top:16px;font-size:13px;color:var(--gray-200)">
+          ⚡ Pagamento via PIX — rápido e sem taxa! Após confirmar o pedido, você receberá o QR Code e a chave PIX.
+        </div>
+      </div>
+
+      <!-- Cartão -->
+      <div id="cardSection" class="mp-container" style="display:none">
+        <div style="display:flex;flex-direction:column;gap:14px;margin-top:16px">
+          <div class="form-group">
+            <label class="form-label">Número do Cartão</label>
+            <input type="text" class="form-input" id="cardNumber" placeholder="0000 0000 0000 0000" maxlength="19">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="form-group">
+              <label class="form-label">Validade</label>
+              <input type="text" class="form-input" id="cardExpiry" placeholder="MM/AA" maxlength="5">
+            </div>
+            <div class="form-group">
+              <label class="form-label">CVV</label>
+              <input type="text" class="form-input" id="cardCvv" placeholder="123" maxlength="4">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nome no Cartão</label>
+            <input type="text" class="form-input" id="cardName" placeholder="NOME COMO NO CARTÃO">
+          </div>
+          <div class="form-group">
+            <label class="form-label">CPF do Titular</label>
+            <input type="text" class="form-input" id="cardCpf" placeholder="000.000.000-00" maxlength="14">
+          </div>
+          <div class="form-group" id="installmentsGroup">
+            <label class="form-label">Parcelas</label>
+            <select class="form-input" id="installments">
+              <option value="1">1x sem juros</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-gold" id="checkout-btn" onclick="processCheckout()">
+      Confirmar Pedido
+    </button>
+    <div class="secure-badge">🔒 Pagamento seguro via Mercado Pago</div>
+  </div>
+
+  <!-- PIX Result -->
+  <div class="pix-section" id="pixResult">
+    <div style="font-size:48px;margin-bottom:16px">⚡</div>
+    <h3 style="font-size:20px;font-weight:800;margin-bottom:8px">PIX Gerado!</h3>
+    <p style="color:var(--gray-400);font-size:13px;margin-bottom:16px">Copie o código ou escaneie o QR Code</p>
+    <div class="pix-qr" id="pixQr">📱</div>
+    <div class="pix-code" id="pixCode"></div>
+    <button class="btn btn-gold pix-copy" onclick="copyPix()">📋 Copiar Código PIX</button>
+    <p style="font-size:11px;color:var(--gray-500);margin-top:16px">Após o pagamento, seu pedido será confirmado automaticamente</p>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="https://sdk.mercadopago.com/js/v2"></script>
+<script src="js/carrinho.js"></script>
+<script>
+let mp;
+let selectedPayment = 'pix';
+let cartData = JSON.parse(localStorage.getItem('jm_cart') || '[]');
+
+function formatPrice(v) {
+  return 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function showToast(msg) {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+function initCheckout() {
+  if (cartData.length === 0) {
+    window.location.href = 'index.html';
+    return;
+  }
+
+  const total = cartData.reduce((s, i) => s + i.price * i.qty, 0);
+  document.getElementById('orderTotal').textContent = formatPrice(total);
+  document.getElementById('orderItems').innerHTML = cartData.map(item => `
+    <div class="order-item">
+      <span class="order-item-name">${item.name}${item.size ? ` (${item.size})` : ''} x${item.qty}</span>
+      <span class="order-item-price">${formatPrice(item.price * item.qty)}</span>
+    </div>`).join('');
+
+  try { mp = new MercadoPago(MP_PUBLIC_KEY, { locale: 'pt-BR' }); } catch(e) {}
+
+  updateInstallments(total);
+}
+
+function selectPayment(el, method) {
+  document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedPayment = method;
+  document.getElementById('pixSection').style.display = (method === 'pix') ? 'block' : 'none';
+  document.getElementById('cardSection').style.display = (method !== 'pix') ? 'block' : 'none';
+}
+
+function updateInstallments(total) {
+  const sel = document.getElementById('installments');
+  sel.innerHTML = '';
+  const maxInst = total >= 100 ? (total >= 300 ? 6 : 3) : 1;
+  for (let i = 1; i <= maxInst; i++) {
+    const val = total / i;
+    sel.innerHTML += `<option value="${i}">${i}x de ${formatPrice(val)}${i === 1 ? ' sem juros' : ''}</option>`;
+  }
+}
+
+function maskCard(input) {
+  let v = input.value.replace(/\D/g,'').substring(0,16);
+  input.value = v.replace(/(.{4})/g,'$1 ').trim();
+}
+
+function maskExpiry(input) {
+  let v = input.value.replace(/\D/g,'').substring(0,4);
+  if (v.length >= 2) v = v.substring(0,2) + '/' + v.substring(2);
+  input.value = v;
+}
+
+function maskCpf(input) {
+  let v = input.value.replace(/\D/g,'').substring(0,11);
+  v = v.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2');
+  input.value = v;
+}
+
+document.getElementById('cardNumber')?.addEventListener('input', function(){ maskCard(this); });
+document.getElementById('cardExpiry')?.addEventListener('input', function(){ maskExpiry(this); });
+document.getElementById('cardCpf')?.addEventListener('input', function(){ maskCpf(this); });
+
+async function processCheckout() {
+  const name = document.getElementById('customerName').value.trim();
+  const phone = document.getElementById('customerPhone').value.trim();
+
+  if (!name) { showToast('⚠️ Informe seu nome'); return; }
+  if (!phone) { showToast('⚠️ Informe seu WhatsApp'); return; }
+
+  const btn = document.getElementById('checkout-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Processando...';
+
+  const total = cartData.reduce((s, i) => s + i.price * i.qty, 0);
+
+  try {
+    const { data: order, error } = await db.from('orders').insert({
+      customer_name: name,
+      customer_phone: phone,
+      customer_email: document.getElementById('customerEmail').value || null,
+      items: cartData,
+      subtotal: total,
+      total: total,
+      payment_method: selectedPayment,
+      payment_status: 'pending',
+      order_status: 'new'
+    }).select().single();
+
+    if (error) throw error;
+
+    if (selectedPayment === 'pix') {
+      showPixResult(total, order.id);
+    } else {
+      await processMercadoPago(order, total);
+    }
+
+    localStorage.removeItem('jm_cart');
+  } catch(e) {
+    console.error(e);
+    showToast('❌ Erro ao processar. Tente pelo WhatsApp.');
+    btn.disabled = false;
+    btn.textContent = 'Confirmar Pedido';
+  }
+}
+
+function showPixResult(total, orderId) {
+  document.querySelector('.checkout-form').style.display = 'none';
+  document.querySelector('.order-summary').style.display = 'none';
+  const pixResult = document.getElementById('pixResult');
+  pixResult.style.display = 'block';
+
+  const pixKey = '75991748725';
+  const pixCode = `00020126360014BR.GOV.BCB.PIX0114${pixKey}5204000053039865802BR5913JuninhoBadge6009Quijingue62070503***6304`;
+  document.getElementById('pixCode').textContent = pixCode;
+  window._pixCode = pixCode;
+
+  const waMsg = `✅ Pedido Confirmado!\n\nOlá! Finalizei meu pedido no site.\nPedido: #${orderId.substring(0,8).toUpperCase()}\nTotal: ${formatPrice(total)}\nPagamento: PIX\n\nAguardando confirmação! 😊`;
+  setTimeout(() => {
+    window.open(`https://wa.me/5575991748725?text=${encodeURIComponent(waMsg)}`, '_blank');
+  }, 1500);
+}
+
+function copyPix() {
+  navigator.clipboard.writeText(window._pixCode || '').then(() => showToast('✅ Código PIX copiado!'));
+}
+
+async function processMercadoPago(order, total) {
+  const waMsg = `✅ Pedido #${order.id.substring(0,8).toUpperCase()}\nTotal: ${formatPrice(total)}\nPagamento: Cartão\n\nObrigado pela compra! 🛍️`;
+  window.open(`https://wa.me/5575991748725?text=${encodeURIComponent(waMsg)}`, '_blank');
+  showToast('✅ Pedido registrado! Finalize pelo WhatsApp.');
+  setTimeout(() => window.location.href = 'index.html', 3000);
+}
+
+initCheckout();
+</script>
+</body>
+</html>

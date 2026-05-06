@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Promoções — Juninho Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div style="font-size:28px">👑</div>
+        <div class="sidebar-logo-text"><span>Juninho</span><span>Multi Marcas</span></div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Principal</span>
+      <a href="dashboard.html" class="nav-link"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="pedidos.html" class="nav-link"><span class="nav-icon">📦</span> Pedidos</a>
+      <a href="vendas.html" class="nav-link"><span class="nav-icon">📝</span> Anotar Venda</a>
+      <span class="nav-section-label">Catálogo</span>
+      <a href="produtos.html" class="nav-link"><span class="nav-icon">👕</span> Produtos</a>
+      <a href="promocoes.html" class="nav-link active"><span class="nav-icon">🔥</span> Promoções</a>
+      <span class="nav-section-label">Relatórios</span>
+      <a href="relatorios.html" class="nav-link"><span class="nav-icon">📈</span> Relatórios</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user" onclick="logout()">
+        <div class="user-avatar">J</div>
+        <div class="user-info"><div class="user-name">Administrador</div><div class="user-role">Sair ↗</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="topbar">
+      <button class="topbar-menu-btn" id="topbarMenuBtn">☰</button>
+      <span class="topbar-title">Promoções</span>
+    </div>
+
+    <div class="content">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start">
+        <!-- Ativar promoção em produto -->
+        <div class="card">
+          <div class="card-title">🔥 Ativar Promoção em Produto</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Buscar Produto</label>
+              <input type="text" class="form-input" id="promoSearch" placeholder="Digite para buscar..." oninput="searchProducts()">
+            </div>
+            <div id="promoProductList" style="display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto"></div>
+          </div>
+        </div>
+
+        <!-- Produtos em promoção -->
+        <div class="card">
+          <div class="card-title">
+            Produtos em Promoção
+            <span class="card-title-action" onclick="loadPromoProducts()">↻</span>
+          </div>
+          <div id="promoActiveList" style="display:flex;flex-direction:column;gap:8px;max-height:400px;overflow-y:auto">
+            <div style="color:var(--gray-500);font-size:12px;text-align:center;padding:20px">Carregando...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Aplicar desconto em massa -->
+      <div class="card" style="margin-top:24px">
+        <div class="card-title">⚡ Desconto em Massa por Categoria</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+          <div class="form-group" style="min-width:180px">
+            <label class="form-label">Categoria</label>
+            <select class="form-select" id="massCategory">
+              <option value="">Todas</option>
+              <option>Roupas</option><option>Óculos</option><option>Calçados</option>
+              <option>Bonés</option><option>Sandálias</option><option>Shorts de Praia</option><option>Shorts Jeans</option>
+            </select>
+          </div>
+          <div class="form-group" style="min-width:140px">
+            <label class="form-label">Desconto (%)</label>
+            <input type="number" class="form-input" id="massDiscount" placeholder="Ex: 20" min="1" max="90">
+          </div>
+          <div class="form-group" style="min-width:120px">
+            <label class="form-label">Ação</label>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-primary btn-sm" onclick="applyMassDiscount()">Aplicar</button>
+              <button class="btn btn-danger btn-sm" onclick="removeMassPromo()">Remover</button>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:11px;color:var(--gray-500);margin-top:12px">⚠️ "Aplicar" marca produtos como promoção. Defina o preço original vs. preço promocional em cada produto.</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/config.js"></script>
+<script src="../js/admin/auth.js"></script>
+<script>
+let searchTimeout;
+let categories = [];
+
+async function init() {
+  const { data } = await db.from('categories').select('*');
+  categories = data || [];
+  await loadPromoProducts();
+}
+
+async function searchProducts() {
+  clearTimeout(searchTimeout);
+  const term = document.getElementById('promoSearch').value.trim();
+  if (term.length < 2) { document.getElementById('promoProductList').innerHTML = ''; return; }
+
+  searchTimeout = setTimeout(async () => {
+    const { data } = await db.from('products').select('*, brands(name)').ilike('name', `%${term}%`).eq('is_active', true).limit(10);
+    renderSearchResults(data || []);
+  }, 300);
+}
+
+function renderSearchResults(products) {
+  const list = document.getElementById('promoProductList');
+  if (products.length === 0) {
+    list.innerHTML = '<div style="font-size:12px;color:var(--gray-500);padding:12px">Nenhum produto encontrado</div>';
+    return;
+  }
+  list.innerHTML = products.map(p => `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--surface-2);border-radius:var(--radius);border:1px solid ${p.is_promotion ? 'var(--gold)' : 'var(--border)'}">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name}</div>
+        <div style="font-size:10px;color:var(--gold)">${p.brands?.name || ''} · R$ ${Number(p.price).toFixed(2)}</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" ${p.is_promotion ? 'checked' : ''} onchange="togglePromo('${p.id}', this.checked)">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>`).join('');
+}
+
+async function loadPromoProducts() {
+  const { data } = await db.from('products').select('*, brands(name)').eq('is_promotion', true).eq('is_active', true).order('name');
+  const list = document.getElementById('promoActiveList');
+  if (!data || data.length === 0) {
+    list.innerHTML = '<div style="color:var(--gray-500);font-size:12px;text-align:center;padding:20px">Nenhum produto em promoção</div>';
+    return;
+  }
+  list.innerHTML = data.map(p => `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(201,168,76,0.05);border-radius:var(--radius);border:1px solid rgba(201,168,76,0.3)">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:700">${p.name}</div>
+        <div style="display:flex;gap:8px;font-size:11px;margin-top:2px">
+          <span style="color:var(--gold)">${p.brands?.name || ''}</span>
+          <span style="color:var(--white);font-weight:700">R$ ${Number(p.price).toFixed(2)}</span>
+          ${p.original_price ? `<span style="color:var(--gray-400);text-decoration:line-through">R$ ${Number(p.original_price).toFixed(2)}</span>` : ''}
+        </div>
+      </div>
+      <button class="btn btn-danger btn-sm" onclick="togglePromo('${p.id}', false)">Remover</button>
+    </div>`).join('');
+}
+
+async function togglePromo(id, active) {
+  const { error } = await db.from('products').update({ is_promotion: active }).eq('id', id);
+  if (error) { adminShowToast('❌ Erro ao atualizar', 'error'); return; }
+  adminShowToast(active ? '🔥 Produto em promoção!' : '✅ Promoção removida', active ? 'success' : 'info');
+  loadPromoProducts();
+}
+
+async function applyMassDiscount() {
+  const cat = document.getElementById('massCategory').value;
+  const disc = parseInt(document.getElementById('massDiscount').value);
+  if (!disc || disc < 1 || disc > 90) { adminShowToast('⚠️ Informe um desconto válido (1-90%)', 'error'); return; }
+  if (!confirm(`Marcar como promoção todos os produtos${cat ? ` da categoria "${cat}"` : ''}?`)) return;
+
+  let query = db.from('products').update({ is_promotion: true }).eq('is_active', true);
+  if (cat) {
+    const { data: catData } = await db.from('categories').select('id').ilike('name', cat).single();
+    if (catData) query = db.from('products').update({ is_promotion: true }).eq('is_active', true).eq('category_id', catData.id);
+  }
+  const { error } = await query;
+  if (error) { adminShowToast('❌ Erro: ' + error.message, 'error'); return; }
+  adminShowToast('🔥 Promoção aplicada!', 'success');
+  loadPromoProducts();
+}
+
+async function removeMassPromo() {
+  const cat = document.getElementById('massCategory').value;
+  if (!confirm(`Remover promoção de todos os produtos${cat ? ` da categoria "${cat}"` : ''}?`)) return;
+
+  let query = db.from('products').update({ is_promotion: false }).eq('is_active', true);
+  if (cat) {
+    const { data: catData } = await db.from('categories').select('id').ilike('name', cat).single();
+    if (catData) query = db.from('products').update({ is_promotion: false }).eq('is_active', true).eq('category_id', catData.id);
+  }
+  const { error } = await query;
+  if (error) { adminShowToast('❌ Erro: ' + error.message, 'error'); return; }
+  adminShowToast('✅ Promoções removidas!', 'info');
+  loadPromoProducts();
+}
+
+init();
+</script>
+</body>
+</html>

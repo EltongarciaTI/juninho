@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Promoções — Juninho Multi Marcas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .promo-page-hero {
+      min-height: 44vh;
+      display: flex;
+      align-items: flex-end;
+      padding-top: 80px;
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, #0d0500, #1a0800, var(--black));
+      border-bottom: 1px solid rgba(201,168,76,0.2);
+    }
+    .promo-page-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 40% 60%, rgba(201,168,76,0.1) 0%, transparent 60%);
+    }
+    .promo-hero-inner { padding: 40px 0; position: relative; z-index: 2; }
+    .promo-countdown-big {
+      display: flex;
+      gap: 16px;
+      margin: 24px 0;
+    }
+    .cd-block {
+      text-align: center;
+      background: rgba(0,0,0,0.5);
+      border: 1px solid rgba(201,168,76,0.4);
+      border-radius: var(--radius-lg);
+      padding: 14px 18px;
+      min-width: 70px;
+      backdrop-filter: blur(8px);
+    }
+    .cd-num {
+      font-size: 32px;
+      font-weight: 900;
+      color: var(--gold);
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .cd-lbl {
+      font-size: 9px;
+      color: var(--gray-400);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+    .fire-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 14px;
+      background: rgba(231,76,60,0.15);
+      border: 1px solid rgba(231,76,60,0.4);
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #e74c3c;
+      margin-bottom: 16px;
+    }
+    .filter-pill { flex-shrink:0;padding:8px 16px;border-radius:24px;border:1px solid var(--gray-700);font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gray-300);background:var(--gray-800);cursor:pointer;transition:var(--transition);white-space:nowrap; }
+    .filter-pill:hover,.filter-pill.active { border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,0.08); }
+  </style>
+</head>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/components.js"></script>
+<script>renderNavbar();</script>
+
+<!-- HERO -->
+<div class="promo-page-hero">
+  <div class="container promo-hero-inner">
+    <div class="fire-badge" id="fireBadge">🔥 Promoções</div>
+    <h1 id="promoTitle" style="font-size:clamp(32px,7vw,64px);font-weight:900;text-transform:uppercase;line-height:1.05;margin-bottom:8px">
+      Ofertas <span style="color:var(--gold)">Imperdíveis</span>
+    </h1>
+    <p id="promoSub" style="color:var(--gray-400);font-size:15px;margin-bottom:4px">
+      Preços especiais por tempo limitado — corra antes que acabe!
+    </p>
+    <div class="promo-countdown-big" id="countdown">
+      <div class="cd-block"><div class="cd-num" id="cd-h">00</div><div class="cd-lbl">Horas</div></div>
+      <div class="cd-block"><div class="cd-num" id="cd-m">00</div><div class="cd-lbl">Min</div></div>
+      <div class="cd-block"><div class="cd-num" id="cd-s">00</div><div class="cd-lbl">Seg</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- PRODUTOS EM PROMOÇÃO -->
+<section class="section" style="background:var(--gray-900)">
+  <div class="container">
+    <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none;margin-bottom:28px">
+      <button class="filter-pill active" data-cat="">Todos</button>
+      <button class="filter-pill" data-cat="roupas">👕 Roupas</button>
+      <button class="filter-pill" data-cat="oculos">🕶️ Óculos</button>
+      <button class="filter-pill" data-cat="calcados">👟 Calçados</button>
+      <button class="filter-pill" data-cat="bones">🧢 Bonés</button>
+      <button class="filter-pill" data-cat="sandalias">🩴 Sandálias</button>
+      <button class="filter-pill" data-cat="shorts-praia">🩱 Shorts Praia</button>
+      <button class="filter-pill" data-cat="shorts-jeans">👖 Shorts Jeans</button>
+    </div>
+
+    <div class="products-grid" id="promoGrid">
+      <div class="skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton-info"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div></div>
+      <div class="skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton-info"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div></div>
+      <div class="skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton-info"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div></div>
+      <div class="skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton-info"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div></div>
+    </div>
+
+    <div style="text-align:center;padding:32px 0;display:none" id="loadMoreWrap">
+      <button class="btn btn-outline" onclick="loadMore()">Ver mais promoções</button>
+    </div>
+  </div>
+</section>
+
+<script src="js/carrinho.js"></script>
+<script src="js/produtos.js"></script>
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+// Animação hero
+gsap.timeline()
+  .from('#fireBadge',  { x: -20, opacity: 0, duration: 0.5, ease: 'power3.out' })
+  .from('#promoTitle', { y: 40,  opacity: 0, duration: 0.7, ease: 'power3.out' }, '-=0.2')
+  .from('#promoSub',   { y: 20,  opacity: 0, duration: 0.5, ease: 'power3.out' }, '-=0.3')
+  .from('#countdown .cd-block', { y: 30, opacity: 0, duration: 0.4, stagger: 0.1, ease: 'back.out(1.5)' }, '-=0.2');
+
+// Countdown
+function startCountdown() {
+  const end = new Date(); end.setHours(23, 59, 59, 0);
+  const pad = n => String(n).padStart(2, '0');
+  setInterval(() => {
+    const diff = end - new Date();
+    if (diff <= 0) return;
+    document.getElementById('cd-h').textContent = pad(Math.floor(diff / 3600000));
+    document.getElementById('cd-m').textContent = pad(Math.floor((diff % 3600000) / 60000));
+    document.getElementById('cd-s').textContent = pad(Math.floor((diff % 60000) / 1000));
+  }, 1000);
+}
+startCountdown();
+
+// Produtos
+let allItems = [];
+let page = 0;
+const PER = 12;
+
+async function fetchPromos(catSlug = '') {
+  let query = db.from('products')
+    .select('*, categories(name,slug), brands(name)')
+    .eq('is_promotion', true).eq('is_active', true)
+    .order('created_at', { ascending: false });
+
+  if (catSlug) {
+    const { data: cat } = await db.from('categories').select('id').eq('slug', catSlug).single();
+    if (cat) query = query.eq('category_id', cat.id);
+  }
+
+  const { data } = await query;
+  allItems = data || [];
+  page = 0;
+  render(true);
+}
+
+function render(reset) {
+  const grid = document.getElementById('promoGrid');
+  const slice = allItems.slice(page * PER, (page + 1) * PER);
+  if (reset) {
+    if (allItems.length === 0) {
+      grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--gray-500)"><div style="font-size:40px;margin-bottom:12px">🔥</div><p>Nenhuma promoção no momento<br><small style="font-size:11px">Cadastre promoções no painel admin</small></p></div>`;
+      document.getElementById('loadMoreWrap').style.display = 'none';
+      return;
+    }
+    grid.innerHTML = slice.map(buildProductCard).join('');
+    gsap.from('#promoGrid .product-card', { y: 30, opacity: 0, stagger: 0.08, duration: 0.5, ease: 'power3.out' });
+  } else {
+    slice.forEach(p => grid.insertAdjacentHTML('beforeend', buildProductCard(p)));
+  }
+  page++;
+  document.getElementById('loadMoreWrap').style.display = page * PER < allItems.length ? 'block' : 'none';
+  initReveal();
+}
+
+function loadMore() { render(false); }
+
+document.querySelectorAll('.filter-pill').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    fetchPromos(btn.dataset.cat);
+  });
+});
+
+fetchPromos();
+renderFooter();
+</script>
+</body>
+</html>

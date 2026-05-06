@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anotar Venda — Juninho Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div style="font-size:28px">👑</div>
+        <div class="sidebar-logo-text"><span>Juninho</span><span>Multi Marcas</span></div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Principal</span>
+      <a href="dashboard.html" class="nav-link"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="pedidos.html" class="nav-link"><span class="nav-icon">📦</span> Pedidos</a>
+      <a href="vendas.html" class="nav-link active"><span class="nav-icon">📝</span> Anotar Venda</a>
+      <span class="nav-section-label">Catálogo</span>
+      <a href="produtos.html" class="nav-link"><span class="nav-icon">👕</span> Produtos</a>
+      <a href="promocoes.html" class="nav-link"><span class="nav-icon">🔥</span> Promoções</a>
+      <span class="nav-section-label">Relatórios</span>
+      <a href="relatorios.html" class="nav-link"><span class="nav-icon">📈</span> Relatórios</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user" onclick="logout()">
+        <div class="user-avatar">J</div>
+        <div class="user-info"><div class="user-name">Administrador</div><div class="user-role">Sair ↗</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="topbar">
+      <button class="topbar-menu-btn" id="topbarMenuBtn">☰</button>
+      <span class="topbar-title">Anotar Venda</span>
+      <div class="topbar-actions">
+        <a href="../index.html" target="_blank" class="store-link">🛍️ Ver Loja</a>
+      </div>
+    </div>
+
+    <div class="content">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start">
+
+        <!-- FORMULÁRIO -->
+        <div class="card">
+          <div class="card-title">📝 Nova Venda (Balcão)</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Produto *</label>
+              <input type="text" class="form-input" id="sProduct" placeholder="Nome do produto vendido" list="productsSuggestions">
+              <datalist id="productsSuggestions"></datalist>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Categoria</label>
+                <select class="form-select" id="sCategory">
+                  <option value="">Selecione</option>
+                  <option>Roupas</option>
+                  <option>Óculos</option>
+                  <option>Calçados</option>
+                  <option>Bonés</option>
+                  <option>Sandálias</option>
+                  <option>Shorts de Praia</option>
+                  <option>Shorts Jeans</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Quantidade *</label>
+                <input type="number" class="form-input" id="sQty" value="1" min="1" oninput="calcTotal()">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Preço Unit. (R$) *</label>
+                <input type="number" class="form-input" id="sPrice" placeholder="0.00" step="0.01" oninput="calcTotal()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Total</label>
+                <div class="form-input" id="sTotal" style="color:var(--gold);font-weight:800;font-size:18px">R$ 0,00</div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Forma de Pagamento *</label>
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+                <div class="payment-method selected" data-pay="dinheiro" onclick="selectPay(this,'dinheiro')">
+                  <div style="font-size:20px">💵</div>
+                  <div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase">Dinheiro</div>
+                </div>
+                <div class="payment-method" data-pay="pix" onclick="selectPay(this,'pix')">
+                  <div style="font-size:20px">⚡</div>
+                  <div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase">PIX</div>
+                </div>
+                <div class="payment-method" data-pay="credito" onclick="selectPay(this,'credito')">
+                  <div style="font-size:20px">💳</div>
+                  <div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase">Crédito</div>
+                </div>
+                <div class="payment-method" data-pay="debito" onclick="selectPay(this,'debito')">
+                  <div style="font-size:20px">💲</div>
+                  <div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase">Débito</div>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Cliente (opcional)</label>
+              <input type="text" class="form-input" id="sCustomer" placeholder="Nome do cliente">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Observações</label>
+              <input type="text" class="form-input" id="sNotes" placeholder="Ex: tamanho G, cor azul...">
+            </div>
+            <button class="btn btn-primary" style="padding:14px;font-size:14px" onclick="saveSale()">
+              ✅ Registrar Venda
+            </button>
+          </div>
+        </div>
+
+        <!-- HISTÓRICO -->
+        <div>
+          <!-- Stats do dia -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+            <div class="stat-card gold">
+              <div class="stat-icon">💰</div>
+              <div class="stat-label">Hoje</div>
+              <div class="stat-value gold" id="todayRevenue">R$ 0,00</div>
+            </div>
+            <div class="stat-card green">
+              <div class="stat-icon">📊</div>
+              <div class="stat-label">Vendas Hoje</div>
+              <div class="stat-value green" id="todayCount">0</div>
+            </div>
+          </div>
+
+          <!-- Lista vendas -->
+          <div class="card">
+            <div class="card-title">
+              Vendas do Dia
+              <span class="card-title-action" onclick="loadSales()">↻ Atualizar</span>
+            </div>
+            <div id="salesList" style="display:flex;flex-direction:column;gap:10px;max-height:500px;overflow-y:auto">
+              <div style="color:var(--gray-500);font-size:12px;text-align:center;padding:20px">Carregando...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabela completa -->
+      <div class="card" style="margin-top:24px">
+        <div class="card-title">
+          Histórico de Vendas
+          <div style="display:flex;gap:8px">
+            <input type="date" class="form-input" id="dateFilter" style="padding:6px 10px;font-size:12px;width:140px" onchange="loadSalesHistory()">
+          </div>
+        </div>
+        <div class="table-wrapper" style="margin-top:0">
+          <table>
+            <thead>
+              <tr>
+                <th>Produto</th>
+                <th>Categoria</th>
+                <th>Qtd</th>
+                <th>Preço Unit.</th>
+                <th>Total</th>
+                <th>Pagamento</th>
+                <th>Cliente</th>
+                <th>Hora</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="salesHistoryTable">
+              <tr><td colspan="9" style="text-align:center;padding:30px;color:var(--gray-500)">Selecione um período</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/config.js"></script>
+<script src="../js/admin/auth.js"></script>
+<script>
+let selectedPay = 'dinheiro';
+const todayStr = new Date().toISOString().split('T')[0];
+
+function selectPay(el, method) {
+  document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedPay = method;
+}
+
+function calcTotal() {
+  const qty = parseInt(document.getElementById('sQty').value) || 0;
+  const price = parseFloat(document.getElementById('sPrice').value) || 0;
+  const total = qty * price;
+  document.getElementById('sTotal').textContent = 'R$ ' + total.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+}
+
+async function saveSale() {
+  const product = document.getElementById('sProduct').value.trim();
+  const qty = parseInt(document.getElementById('sQty').value) || 0;
+  const price = parseFloat(document.getElementById('sPrice').value) || 0;
+
+  if (!product) { adminShowToast('⚠️ Informe o produto', 'error'); return; }
+  if (qty <= 0) { adminShowToast('⚠️ Informe a quantidade', 'error'); return; }
+  if (price <= 0) { adminShowToast('⚠️ Informe o preço', 'error'); return; }
+
+  const { error } = await db.from('sales').insert({
+    product_name: product,
+    category: document.getElementById('sCategory').value || null,
+    quantity: qty,
+    unit_price: price,
+    total_price: qty * price,
+    payment_method: selectedPay,
+    customer_name: document.getElementById('sCustomer').value || null,
+    notes: document.getElementById('sNotes').value || null
+  });
+
+  if (error) { adminShowToast('❌ Erro ao registrar: ' + error.message, 'error'); return; }
+
+  adminShowToast('✅ Venda registrada!', 'success');
+  ['sProduct','sQty','sPrice','sCustomer','sNotes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = id === 'sQty' ? '1' : '';
+  });
+  document.getElementById('sTotal').textContent = 'R$ 0,00';
+  loadSales();
+}
+
+async function loadSales() {
+  const { data } = await db.from('sales')
+    .select('*')
+    .gte('created_at', todayStr + 'T00:00:00')
+    .order('created_at', { ascending: false });
+
+  const todayRevenue = (data || []).reduce((s, r) => s + Number(r.total_price), 0);
+  document.getElementById('todayRevenue').textContent = 'R$ ' + todayRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+  document.getElementById('todayCount').textContent = (data || []).length;
+
+  const list = document.getElementById('salesList');
+  if (!data || data.length === 0) {
+    list.innerHTML = '<div style="color:var(--gray-500);font-size:12px;text-align:center;padding:20px">Nenhuma venda hoje</div>';
+    return;
+  }
+
+  const PAY_ICONS = { dinheiro: '💵', pix: '⚡', credito: '💳', debito: '💲' };
+  list.innerHTML = data.map(s => `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--surface-2);border-radius:var(--radius);border:1px solid var(--border)">
+      <div style="font-size:20px">${PAY_ICONS[s.payment_method] || '💰'}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.product_name}</div>
+        <div style="font-size:10px;color:var(--gray-400)">${s.quantity}x · ${s.payment_method} · ${new Date(s.created_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</div>
+      </div>
+      <div style="font-size:14px;font-weight:800;color:var(--success);white-space:nowrap">+R$ ${Number(s.total_price).toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>
+      <button class="btn-icon btn-sm" onclick="deleteSale('${s.id}')" style="font-size:12px">🗑️</button>
+    </div>`).join('');
+}
+
+async function loadSalesHistory() {
+  const date = document.getElementById('dateFilter').value;
+  if (!date) return;
+  const { data } = await db.from('sales').select('*')
+    .gte('created_at', date + 'T00:00:00')
+    .lte('created_at', date + 'T23:59:59')
+    .order('created_at', { ascending: false });
+
+  const tbody = document.getElementById('salesHistoryTable');
+  if (!data || data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--gray-500)">Nenhuma venda neste dia</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map(s => `
+    <tr>
+      <td style="font-weight:600">${s.product_name}</td>
+      <td style="font-size:12px;color:var(--gray-400)">${s.category || '—'}</td>
+      <td>${s.quantity}</td>
+      <td>R$ ${Number(s.unit_price).toFixed(2)}</td>
+      <td style="font-weight:800;color:var(--success)">R$ ${Number(s.total_price).toFixed(2)}</td>
+      <td><span class="status status-approved">${s.payment_method}</span></td>
+      <td style="font-size:12px;color:var(--gray-300)">${s.customer_name || '—'}</td>
+      <td style="font-size:12px;color:var(--gray-400)">${new Date(s.created_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</td>
+      <td><button class="btn-icon btn-sm" onclick="deleteSale('${s.id}')">🗑️</button></td>
+    </tr>`).join('');
+}
+
+async function deleteSale(id) {
+  if (!confirm('Excluir esta venda?')) return;
+  await db.from('sales').delete().eq('id', id);
+  adminShowToast('🗑️ Venda removida', 'info');
+  loadSales();
+}
+
+async function loadProductSuggestions() {
+  const { data } = await db.from('products').select('name').eq('is_active', true).limit(100);
+  const dl = document.getElementById('productsSuggestions');
+  (data || []).forEach(p => { const opt = document.createElement('option'); opt.value = p.name; dl.appendChild(opt); });
+}
+
+// Init
+document.getElementById('dateFilter').value = todayStr;
+loadSales();
+loadSalesHistory();
+loadProductSuggestions();
+</script>
+</body>
+</html>

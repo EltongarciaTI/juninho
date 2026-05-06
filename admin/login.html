@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — Juninho Multi Marcas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+<div class="login-page">
+  <div class="login-card">
+    <div style="font-size:52px;margin-bottom:12px">👑</div>
+    <p class="login-title">Painel Administrativo</p>
+    <h1 class="login-subtitle">Juninho<br>Multi Marcas</h1>
+
+    <form class="login-form" onsubmit="handleLogin(event)">
+      <div class="login-error" id="loginError">E-mail ou senha incorretos.</div>
+      <div class="form-group">
+        <label class="form-label">E-mail</label>
+        <input type="email" class="form-input" id="email" placeholder="admin@email.com" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Senha</label>
+        <input type="password" class="form-input" id="password" placeholder="••••••••" required>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;padding:14px;margin-top:8px" id="loginBtn">
+        Entrar no Painel
+      </button>
+    </form>
+
+    <p style="margin-top:24px;font-size:11px;color:var(--gray-400)">
+      <a href="../index.html" style="color:var(--gold)">← Voltar à loja</a>
+    </p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/config.js"></script>
+<script>
+async function handleLogin(e) {
+  e.preventDefault();
+  const btn = document.getElementById('loginBtn');
+  const errorEl = document.getElementById('loginError');
+  errorEl.classList.remove('show');
+  btn.disabled = true;
+  btn.textContent = 'Entrando...';
+
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+
+  try {
+    const { data, error } = await db.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    window.location.href = 'dashboard.html';
+  } catch (e) {
+    errorEl.classList.add('show');
+    btn.disabled = false;
+    btn.textContent = 'Entrar no Painel';
+  }
+}
+
+// Redirecionar se já logado
+db.auth.getSession().then(({ data }) => {
+  if (data.session) window.location.href = 'dashboard.html';
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pedidos — Juninho Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div style="font-size:28px">👑</div>
+        <div class="sidebar-logo-text"><span>Juninho</span><span>Multi Marcas</span></div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Principal</span>
+      <a href="dashboard.html" class="nav-link"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="pedidos.html" class="nav-link active"><span class="nav-icon">📦</span> Pedidos</a>
+      <a href="vendas.html" class="nav-link"><span class="nav-icon">📝</span> Anotar Venda</a>
+      <span class="nav-section-label">Catálogo</span>
+      <a href="produtos.html" class="nav-link"><span class="nav-icon">👕</span> Produtos</a>
+      <a href="promocoes.html" class="nav-link"><span class="nav-icon">🔥</span> Promoções</a>
+      <span class="nav-section-label">Relatórios</span>
+      <a href="relatorios.html" class="nav-link"><span class="nav-icon">📈</span> Relatórios</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user" onclick="logout()">
+        <div class="user-avatar">J</div>
+        <div class="user-info"><div class="user-name">Administrador</div><div class="user-role">Sair ↗</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="topbar">
+      <button class="topbar-menu-btn" id="topbarMenuBtn">☰</button>
+      <span class="topbar-title">Pedidos Online</span>
+      <div class="topbar-actions">
+        <a href="../index.html" target="_blank" class="store-link">🛍️ Ver Loja</a>
+        <button class="btn topbar-btn" onclick="loadOrders()">↻ Atualizar</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- Stats -->
+      <div class="stats-grid" style="margin-bottom:24px">
+        <div class="stat-card"><div class="stat-icon">🆕</div><div class="stat-label">Novos</div><div class="stat-value" id="countNew">0</div></div>
+        <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-label">Confirmados</div><div class="stat-value" id="countConfirmed">0</div></div>
+        <div class="stat-card"><div class="stat-icon">🚚</div><div class="stat-label">Entregues</div><div class="stat-value" id="countDelivered">0</div></div>
+        <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-label">Total</div><div class="stat-value gold" id="totalRevenue">R$ 0</div></div>
+      </div>
+
+      <!-- Filters -->
+      <div class="filters-bar">
+        <button class="filter-chip active" onclick="filterOrders(this,'')">Todos</button>
+        <button class="filter-chip" onclick="filterOrders(this,'new')">Novos</button>
+        <button class="filter-chip" onclick="filterOrders(this,'confirmed')">Confirmados</button>
+        <button class="filter-chip" onclick="filterOrders(this,'shipped')">Em entrega</button>
+        <button class="filter-chip" onclick="filterOrders(this,'delivered')">Entregues</button>
+        <button class="filter-chip" onclick="filterOrders(this,'cancelled')">Cancelados</button>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Cliente</th>
+              <th>WhatsApp</th>
+              <th>Itens</th>
+              <th>Total</th>
+              <th>Pagamento</th>
+              <th>Status</th>
+              <th>Data</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="ordersTable">
+            <tr><td colspan="9" style="text-align:center;padding:40px;color:var(--gray-500)">Carregando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL DETALHE DO PEDIDO -->
+<div class="modal-overlay" id="orderDetailModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Detalhe do Pedido</h3>
+      <button class="btn-icon" onclick="closeOrderModal()">✕</button>
+    </div>
+    <div class="modal-body" id="orderDetailBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeOrderModal()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/config.js"></script>
+<script src="../js/admin/auth.js"></script>
+<script>
+let allOrders = [];
+let currentFilter = '';
+
+const STATUS_LABELS = {
+  new: 'Novo', confirmed: 'Confirmado', shipped: 'Em entrega',
+  delivered: 'Entregue', cancelled: 'Cancelado'
+};
+const PAY_LABELS = { whatsapp: 'WhatsApp', pix: 'PIX', credit: 'Crédito', debit: 'Débito' };
+
+async function loadOrders() {
+  const { data } = await db.from('orders').select('*').order('created_at', { ascending: false }).limit(100);
+  allOrders = data || [];
+  updateStats();
+  renderOrders();
+}
+
+function updateStats() {
+  document.getElementById('countNew').textContent = allOrders.filter(o => o.order_status === 'new').length;
+  document.getElementById('countConfirmed').textContent = allOrders.filter(o => o.order_status === 'confirmed').length;
+  document.getElementById('countDelivered').textContent = allOrders.filter(o => o.order_status === 'delivered').length;
+  const total = allOrders.reduce((s, o) => s + Number(o.total), 0);
+  document.getElementById('totalRevenue').textContent = formatPrice(total);
+}
+
+function filterOrders(el, status) {
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  currentFilter = status;
+  renderOrders();
+}
+
+function renderOrders() {
+  const filtered = currentFilter ? allOrders.filter(o => o.order_status === currentFilter) : allOrders;
+  const tbody = document.getElementById('ordersTable');
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--gray-500)">Nenhum pedido encontrado</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(o => `
+    <tr>
+      <td style="font-size:11px;color:var(--gray-400);font-weight:700">#${o.id.substring(0,8).toUpperCase()}</td>
+      <td style="font-weight:600">${o.customer_name || '—'}</td>
+      <td>
+        ${o.customer_phone
+          ? `<a href="https://wa.me/55${o.customer_phone.replace(/\D/g,'')}" target="_blank" style="color:var(--success);font-size:12px">${o.customer_phone}</a>`
+          : '—'}
+      </td>
+      <td style="font-size:12px;color:var(--gray-300)">${Array.isArray(o.items) ? o.items.reduce((s,i)=>s+i.qty,0) : 0} itens</td>
+      <td style="font-weight:800;color:var(--gold)">${formatPrice(o.total)}</td>
+      <td><span style="font-size:11px;background:var(--surface-2);padding:3px 8px;border-radius:4px">${PAY_LABELS[o.payment_method] || o.payment_method}</span></td>
+      <td>
+        <select class="form-select" style="padding:4px 8px;font-size:11px;width:130px" onchange="updateOrderStatus('${o.id}', this.value)">
+          ${Object.entries(STATUS_LABELS).map(([k,v]) => `<option value="${k}"${k===o.order_status?' selected':''}>${v}</option>`).join('')}
+        </select>
+      </td>
+      <td style="font-size:11px;color:var(--gray-400)">${new Date(o.created_at).toLocaleDateString('pt-BR')}</td>
+      <td>
+        <div style="display:flex;gap:6px">
+          <button class="btn-icon btn-sm" onclick="viewOrder('${o.id}')" title="Ver detalhes">👁️</button>
+          ${o.customer_phone ? `<a href="https://wa.me/55${o.customer_phone.replace(/\D/g,'')}?text=Olá ${encodeURIComponent(o.customer_name||'')}! Seu pedido foi atualizado." target="_blank" class="btn-icon btn-sm" title="WhatsApp">📱</a>` : ''}
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+async function updateOrderStatus(id, status) {
+  const { error } = await db.from('orders').update({ order_status: status }).eq('id', id);
+  if (error) { adminShowToast('❌ Erro ao atualizar', 'error'); return; }
+  const order = allOrders.find(o => o.id === id);
+  if (order) order.order_status = status;
+  updateStats();
+  adminShowToast('✅ Status atualizado!', 'success');
+}
+
+function viewOrder(id) {
+  const o = allOrders.find(x => x.id === id);
+  if (!o) return;
+  const items = Array.isArray(o.items) ? o.items : [];
+  document.getElementById('orderDetailBody').innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div><div style="font-size:10px;color:var(--gray-400);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Pedido</div><div style="font-weight:700">#${o.id.substring(0,8).toUpperCase()}</div></div>
+        <div><div style="font-size:10px;color:var(--gray-400);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Data</div><div>${new Date(o.created_at).toLocaleString('pt-BR')}</div></div>
+        <div><div style="font-size:10px;color:var(--gray-400);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Cliente</div><div style="font-weight:700">${o.customer_name || '—'}</div></div>
+        <div><div style="font-size:10px;color:var(--gray-400);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">WhatsApp</div><div>${o.customer_phone || '—'}</div></div>
+        <div><div style="font-size:10px;color:var(--gray-400);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Pagamento</div><div>${PAY_LABELS[o.payment_method] || o.payment_method}</div></div>
+        <div><div style="font-size:10px;color:var(--gray-400);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Status</div><span class="status status-${o.order_status}">${STATUS_LABELS[o.order_status]}</span></div>
+      </div>
+      <div style="background:var(--surface-2);border-radius:var(--radius);padding:14px">
+        <div style="font-size:10px;color:var(--gray-400);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;font-weight:700">Itens do Pedido</div>
+        ${items.map(i => `
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">
+            <span>${i.name}${i.size ? ` (${i.size})` : ''} x${i.qty}</span>
+            <span style="font-weight:700;color:var(--gold)">${formatPrice(i.price * i.qty)}</span>
+          </div>`).join('')}
+        <div style="display:flex;justify-content:space-between;padding-top:10px;font-size:16px;font-weight:900">
+          <span>Total</span><span style="color:var(--gold)">${formatPrice(o.total)}</span>
+        </div>
+      </div>
+      ${o.notes ? `<div style="font-size:12px;color:var(--gray-400)">Obs: ${o.notes}</div>` : ''}
+    </div>`;
+  document.getElementById('orderDetailModal').classList.add('open');
+}
+
+function closeOrderModal() {
+  document.getElementById('orderDetailModal').classList.remove('open');
+}
+
+loadOrders();
+setInterval(loadOrders, 30000);
+</script>
+</body>
+</html>

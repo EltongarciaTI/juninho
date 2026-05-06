@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lançamentos — Juninho Multi Marcas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .page-hero {
+      min-height: 36vh;
+      display: flex;
+      align-items: flex-end;
+      padding-top: 80px;
+      background:
+        radial-gradient(ellipse at 30% 60%, rgba(201,168,76,0.08) 0%, transparent 55%),
+        var(--black);
+      border-bottom: 1px solid var(--gray-800);
+    }
+    .page-hero-inner { padding: 32px 0 36px; }
+    .page-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 14px;
+      background: rgba(201,168,76,0.1);
+      border: 1px solid rgba(201,168,76,0.3);
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/components.js"></script>
+<script>renderNavbar();</script>
+
+<!-- HERO DA PÁGINA -->
+<div class="page-hero">
+  <div class="container page-hero-inner">
+    <div class="page-badge" id="badge">✨ Novidades</div>
+    <h1 id="heroTitle" style="font-size:clamp(32px,7vw,60px);font-weight:900;text-transform:uppercase;line-height:1.05;margin-bottom:12px">
+      Lança<span style="color:var(--gold)">mentos</span>
+    </h1>
+    <p id="heroSub" style="color:var(--gray-400);font-size:15px;max-width:480px">
+      Os produtos mais novos que acabaram de chegar na loja. Não perca as novidades!
+    </p>
+  </div>
+</div>
+
+<!-- PRODUTOS -->
+<section class="section" style="background:var(--gray-900)">
+  <div class="container">
+    <!-- Filtros rápidos por categoria -->
+    <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none;margin-bottom:28px" id="catFilters">
+      <button class="filter-pill active" data-cat="">Todos</button>
+      <button class="filter-pill" data-cat="roupas">👕 Roupas</button>
+      <button class="filter-pill" data-cat="oculos">🕶️ Óculos</button>
+      <button class="filter-pill" data-cat="calcados">👟 Calçados</button>
+      <button class="filter-pill" data-cat="bones">🧢 Bonés</button>
+      <button class="filter-pill" data-cat="sandalias">🩴 Sandálias</button>
+      <button class="filter-pill" data-cat="shorts-praia">🩱 Shorts Praia</button>
+      <button class="filter-pill" data-cat="shorts-jeans">👖 Shorts Jeans</button>
+    </div>
+    <style>
+      .filter-pill { flex-shrink:0;padding:8px 16px;border-radius:24px;border:1px solid var(--gray-700);font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gray-300);background:var(--gray-800);cursor:pointer;transition:var(--transition);white-space:nowrap; }
+      .filter-pill:hover,.filter-pill.active { border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,0.08); }
+    </style>
+
+    <div class="products-grid" id="launchGrid">
+      <div class="skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton-info"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div></div>
+      <div class="skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton-info"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div></div>
+      <div class="skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton-info"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div></div>
+      <div class="skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton-info"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div></div>
+    </div>
+
+    <div style="text-align:center;padding:32px 0;display:none" id="loadMoreWrap">
+      <button class="btn btn-outline" onclick="loadMore()">Carregar mais</button>
+    </div>
+  </div>
+</section>
+
+<script src="js/carrinho.js"></script>
+<script src="js/produtos.js"></script>
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+let allItems = [];
+let currentCat = '';
+let page = 0;
+const PER = 12;
+
+gsap.timeline()
+  .from('#badge',     { x: -20, opacity: 0, duration: 0.5, ease: 'power3.out' })
+  .from('#heroTitle', { y: 40,  opacity: 0, duration: 0.7, ease: 'power3.out' }, '-=0.2')
+  .from('#heroSub',   { y: 20,  opacity: 0, duration: 0.5, ease: 'power3.out' }, '-=0.3');
+
+async function fetchLaunches(catSlug = '') {
+  let query = db.from('products')
+    .select('*, categories(name,slug), brands(name)')
+    .eq('is_featured', true).eq('is_active', true)
+    .order('created_at', { ascending: false });
+
+  if (catSlug) {
+    const { data: cat } = await db.from('categories').select('id').eq('slug', catSlug).single();
+    if (cat) query = query.eq('category_id', cat.id);
+  }
+
+  const { data } = await query;
+  allItems = data || [];
+  page = 0;
+  render(true);
+}
+
+function render(reset) {
+  const grid = document.getElementById('launchGrid');
+  const slice = allItems.slice(page * PER, (page + 1) * PER);
+
+  if (reset) {
+    if (allItems.length === 0) {
+      grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--gray-500)"><div style="font-size:40px;margin-bottom:12px">✨</div><p>Nenhum lançamento no momento</p></div>`;
+      document.getElementById('loadMoreWrap').style.display = 'none';
+      return;
+    }
+    grid.innerHTML = slice.map(buildProductCard).join('');
+    gsap.from('#launchGrid .product-card', { y: 30, opacity: 0, stagger: 0.08, duration: 0.5, ease: 'power3.out' });
+  } else {
+    slice.forEach(p => grid.insertAdjacentHTML('beforeend', buildProductCard(p)));
+  }
+  page++;
+  document.getElementById('loadMoreWrap').style.display = page * PER < allItems.length ? 'block' : 'none';
+  initReveal();
+}
+
+function loadMore() { render(false); }
+
+document.querySelectorAll('.filter-pill').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    currentCat = btn.dataset.cat;
+    fetchLaunches(currentCat);
+  });
+});
+
+fetchLaunches();
+renderFooter();
+</script>
+</body>
+</html>

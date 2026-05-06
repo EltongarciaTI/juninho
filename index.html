@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Juninho Multi Marcas — Seu Melhor Estilo</title>
+  <meta name="description" content="Moda masculina premium em Quijingue-BA. Nike, Lacoste, Zara, Boss e muito mais. Desde 2018.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ===== HOME EXCLUSIVO ===== */
+    .home-categories {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    .home-cat-card {
+      background: var(--gray-800);
+      border: 1px solid var(--gray-700);
+      border-radius: var(--radius-lg);
+      padding: 24px 12px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition);
+      text-decoration: none;
+      display: block;
+      position: relative;
+      overflow: hidden;
+    }
+    .home-cat-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(201,168,76,0.12), transparent);
+      opacity: 0;
+      transition: var(--transition);
+    }
+    .home-cat-card:hover::before { opacity: 1; }
+    .home-cat-card:hover {
+      border-color: var(--gold);
+      transform: translateY(-5px);
+      box-shadow: 0 8px 32px rgba(201,168,76,0.15);
+    }
+    .home-cat-icon { font-size: 32px; margin-bottom: 10px; display: block; }
+    .home-cat-name {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--gray-200);
+    }
+    .home-cat-card:hover .home-cat-name { color: var(--gold); }
+
+    .home-brands {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .home-brand-tag {
+      background: var(--gray-800);
+      border: 1px solid var(--gray-700);
+      border-radius: 24px;
+      padding: 8px 20px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--gray-200);
+      transition: var(--transition);
+    }
+    .home-brand-tag:hover { border-color: var(--gold); color: var(--gold); }
+
+    .home-cta {
+      background: linear-gradient(135deg, var(--gray-900), #0f0800);
+      border: 1px solid rgba(201,168,76,0.2);
+      border-radius: var(--radius-lg);
+      padding: 48px 24px;
+      text-align: center;
+    }
+    .home-cta h2 { font-size: clamp(22px,5vw,36px); font-weight:900; text-transform:uppercase; margin-bottom:12px; }
+    .home-cta p { color: var(--gray-400); margin-bottom:24px; font-size:15px; }
+
+    @media (max-width: 479px) { .home-categories { grid-template-columns: repeat(2,1fr); } }
+    @media (min-width: 768px) { .home-categories { grid-template-columns: repeat(7,1fr); } }
+  </style>
+</head>
+<body>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/components.js"></script>
+<script>renderNavbar();</script>
+
+<!-- ===== HERO ===== -->
+<section class="hero" id="inicio">
+  <div class="hero-bg"></div>
+  <div class="hero-particles" id="particles"></div>
+  <div class="hero-content" id="heroContent">
+    <p class="hero-since" id="heroSince">✦ Since 2018 ✦</p>
+    <h1 class="hero-title" id="heroTitle">
+      SEU <span class="gold">MELHOR</span><br>ESTILO
+    </h1>
+    <p class="hero-subtitle" id="heroSubtitle">Vista sua melhor versão</p>
+    <div class="hero-actions" id="heroActions">
+      <a href="lancamentos.html" class="btn btn-gold">Ver Lançamentos ✨</a>
+      <a href="promocoes.html" class="btn btn-outline">Promoções 🔥</a>
+    </div>
+  </div>
+  <div class="hero-scroll" id="heroScroll">scroll</div>
+</section>
+
+<!-- ===== CATEGORIAS ===== -->
+<section class="section categories" style="background:var(--gray-900)">
+  <div class="container">
+    <h2 class="section-title reveal">Nossas <span>Categorias</span></h2>
+    <p class="section-subtitle reveal">Tudo para o homem moderno</p>
+    <div class="home-categories">
+      <a href="produtos.html?cat=roupas" class="home-cat-card reveal"><span class="home-cat-icon">👕</span><span class="home-cat-name">Roupas</span></a>
+      <a href="produtos.html?cat=oculos" class="home-cat-card reveal reveal-delay-1"><span class="home-cat-icon">🕶️</span><span class="home-cat-name">Óculos</span></a>
+      <a href="produtos.html?cat=calcados" class="home-cat-card reveal reveal-delay-1"><span class="home-cat-icon">👟</span><span class="home-cat-name">Calçados</span></a>
+      <a href="produtos.html?cat=bones" class="home-cat-card reveal reveal-delay-2"><span class="home-cat-icon">🧢</span><span class="home-cat-name">Bonés</span></a>
+      <a href="produtos.html?cat=sandalias" class="home-cat-card reveal reveal-delay-2"><span class="home-cat-icon">🩴</span><span class="home-cat-name">Sandálias</span></a>
+      <a href="produtos.html?cat=shorts-praia" class="home-cat-card reveal reveal-delay-3"><span class="home-cat-icon">🩱</span><span class="home-cat-name">Shorts Praia</span></a>
+      <a href="produtos.html?cat=shorts-jeans" class="home-cat-card reveal reveal-delay-3"><span class="home-cat-icon">👖</span><span class="home-cat-name">Shorts Jeans</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== MARCAS ===== -->
+<section class="section" style="background:var(--black);padding:40px 0">
+  <div class="container" style="text-align:center">
+    <p style="font-size:10px;letter-spacing:3px;color:var(--gray-500);text-transform:uppercase;margin-bottom:20px;font-weight:700">Marcas que trabalhamos</p>
+    <div class="home-brands reveal">
+      <span class="home-brand-tag">Nike</span>
+      <span class="home-brand-tag">Lacoste</span>
+      <span class="home-brand-tag">Zara</span>
+      <span class="home-brand-tag">Boss</span>
+      <span class="home-brand-tag">Hopers</span>
+      <span class="home-brand-tag">E Mais...</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== DESTAQUES ===== -->
+<section class="section" style="background:var(--gray-900)">
+  <div class="container">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:32px">
+      <div>
+        <h2 class="section-title reveal" style="text-align:left;margin-bottom:4px">✨ <span>Destaques</span></h2>
+        <p class="section-subtitle reveal" style="text-align:left">Os preferidos da semana</p>
+      </div>
+      <a href="lancamentos.html" class="btn btn-outline btn-sm reveal">Ver todos →</a>
+    </div>
+    <div class="products-grid" id="featuredGrid">
+      <div class="skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton-info"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div></div>
+      <div class="skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton-info"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div></div>
+      <div class="skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton-info"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div></div>
+      <div class="skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton-info"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PROMOÇÕES PREVIEW ===== -->
+<section class="section" style="background:var(--black)">
+  <div class="container">
+    <div class="home-cta reveal">
+      <p style="font-size:11px;letter-spacing:3px;color:var(--gold);font-weight:700;text-transform:uppercase;margin-bottom:12px">🔥 Ofertas especiais</p>
+      <h2>Promoções <span style="color:var(--gold)">Imperdíveis</span></h2>
+      <p>Produtos selecionados com preços que você não vai encontrar em outro lugar</p>
+      <a href="promocoes.html" class="btn btn-gold">Ver Promoções 🔥</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SOBRE SNIPPET ===== -->
+<section class="section about" style="background:var(--gray-900)">
+  <div class="container">
+    <div class="about-grid">
+      <div class="about-visual reveal">
+        <div style="font-size:90px;text-align:center">👑</div>
+        <div class="about-year">Desde 2018</div>
+      </div>
+      <div class="about-text">
+        <h2 class="reveal">Vista Sua<br><span style="color:var(--gold)">Melhor Versão</span></h2>
+        <p class="reveal reveal-delay-1" style="color:var(--gray-300);line-height:1.8;font-size:15px">
+          A Juninho Multi Marcas nasceu em 2018 em Quijingue-BA com um único propósito: levar moda masculina de qualidade para o nordeste. Trabalhamos com as melhores marcas do mercado.
+        </p>
+        <div class="about-stats reveal reveal-delay-2">
+          <div class="stat-item"><div class="stat-number">6+</div><div class="stat-label">Anos</div></div>
+          <div class="stat-item"><div class="stat-number">10+</div><div class="stat-label">Marcas</div></div>
+          <div class="stat-item"><div class="stat-number">7</div><div class="stat-label">Categorias</div></div>
+        </div>
+        <a href="sobre.html" class="btn btn-outline reveal reveal-delay-3" style="margin-top:20px">Conheça nossa história →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="js/carrinho.js"></script>
+<script src="js/produtos.js"></script>
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+// Hero GSAP
+gsap.timeline()
+  .from('#heroSince',    { y: 30, opacity: 0, duration: 0.7, ease: 'power3.out' })
+  .from('#heroTitle',    { y: 50, opacity: 0, duration: 0.8, ease: 'power3.out' }, '-=0.3')
+  .from('#heroSubtitle', { y: 30, opacity: 0, duration: 0.6, ease: 'power3.out' }, '-=0.4')
+  .from('#heroActions',  { y: 30, opacity: 0, duration: 0.6, ease: 'power3.out' }, '-=0.4')
+  .from('#heroScroll',   { opacity: 0, duration: 0.5 }, '-=0.2');
+
+// Partículas
+(function() {
+  const c = document.getElementById('particles');
+  if (!c) return;
+  for (let i = 0; i < 18; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.cssText = `left:${Math.random()*100}%;width:${Math.random()*3+1}px;height:${Math.random()*3+1}px;animation-duration:${Math.random()*8+6}s;animation-delay:${Math.random()*8}s`;
+    c.appendChild(p);
+  }
+})();
+
+// Reveal sections com ScrollTrigger
+initReveal();
+
+// Carregar destaques
+async function loadFeaturedHome() {
+  const { data } = await db.from('products')
+    .select('*, categories(name,slug), brands(name)')
+    .eq('is_featured', true).eq('is_active', true)
+    .order('created_at', { ascending: false }).limit(4);
+
+  const grid = document.getElementById('featuredGrid');
+  if (!data || data.length === 0) {
+    grid.innerHTML = '<p style="color:var(--gray-400);text-align:center;grid-column:1/-1;padding:40px">Em breve — cadastre produtos no painel admin!</p>';
+    return;
+  }
+  grid.innerHTML = data.map(buildProductCard).join('');
+  initReveal();
+  gsap.from('#featuredGrid .product-card', {
+    scrollTrigger: { trigger: '#featuredGrid', start: 'top 80%' },
+    y: 40, opacity: 0, duration: 0.5, stagger: 0.12, ease: 'power3.out'
+  });
+}
+
+loadFeaturedHome();
+renderFooter();
+</script>
+</body>
+</html>

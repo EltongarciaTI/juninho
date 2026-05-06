@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sobre Nós — Juninho Multi Marcas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .sobre-hero {
+      min-height: 50vh;
+      display: flex;
+      align-items: center;
+      padding-top: 80px;
+      position: relative;
+      overflow: hidden;
+      background: var(--black);
+    }
+    .sobre-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 70% 40%, rgba(201,168,76,0.07) 0%, transparent 55%),
+        radial-gradient(ellipse at 20% 70%, rgba(201,168,76,0.04) 0%, transparent 45%);
+    }
+    .timeline {
+      position: relative;
+      padding-left: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 7px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--gold), transparent);
+    }
+    .timeline-item { position: relative; }
+    .timeline-dot {
+      position: absolute;
+      left: -24px;
+      top: 6px;
+      width: 12px;
+      height: 12px;
+      background: var(--gold);
+      border-radius: 50%;
+      border: 2px solid var(--black);
+    }
+    .timeline-year {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--gold);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .timeline-text { font-size: 14px; color: var(--gray-300); line-height: 1.6; }
+    .contact-method {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: var(--gray-800);
+      border: 1px solid var(--gray-700);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      transition: var(--transition);
+      text-decoration: none;
+      color: inherit;
+    }
+    .contact-method:hover { border-color: var(--gold); transform: translateX(4px); }
+    .contact-method-icon {
+      font-size: 24px;
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .hours-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .hour-card {
+      background: var(--gray-800);
+      border: 1px solid var(--gray-700);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      text-align: center;
+    }
+    .hour-emoji { font-size: 28px; margin-bottom: 8px; }
+    .hour-time { font-size: 18px; font-weight: 800; color: var(--gold); }
+    .hour-label { font-size: 11px; color: var(--gray-400); letter-spacing: 1px; text-transform: uppercase; margin-top: 4px; }
+    .divider {
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--gray-700), transparent);
+      margin: 60px 0;
+    }
+  </style>
+</head>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/components.js"></script>
+<script>renderNavbar();</script>
+
+<!-- HERO -->
+<div class="sobre-hero">
+  <div class="container" style="position:relative;z-index:2;padding:60px 16px">
+    <p class="page-badge" id="h1" style="display:inline-flex;align-items:center;gap:6px;padding:5px 14px;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.3);border-radius:20px;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:16px">👑 Nossa História</p>
+    <h1 id="h2" style="font-size:clamp(32px,7vw,60px);font-weight:900;text-transform:uppercase;line-height:1.05;margin-bottom:20px">
+      Vista Sua<br><span style="color:var(--gold)">Melhor Versão</span>
+    </h1>
+    <p id="h3" style="color:var(--gray-300);font-size:16px;line-height:1.8;max-width:540px">
+      Somos a Juninho Multi Marcas, uma loja masculina de moda premium localizada em Quijingue-BA. Desde 2018 trazendo o melhor estilo para o nordeste.
+    </p>
+  </div>
+</div>
+
+<!-- SOBRE -->
+<section class="section" style="background:var(--gray-900)">
+  <div class="container">
+    <div class="about-grid">
+      <!-- Números -->
+      <div class="reveal">
+        <div style="font-size:80px;text-align:center;margin-bottom:12px">👑</div>
+        <div style="text-align:center;font-size:10px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;font-weight:700;margin-bottom:32px">Quijingue — BA</div>
+        <div class="about-stats">
+          <div class="stat-item"><div class="stat-number">6+</div><div class="stat-label">Anos</div></div>
+          <div class="stat-item"><div class="stat-number">10+</div><div class="stat-label">Marcas</div></div>
+          <div class="stat-item"><div class="stat-number">7</div><div class="stat-label">Categorias</div></div>
+        </div>
+      </div>
+
+      <!-- Texto + Timeline -->
+      <div>
+        <h2 class="reveal" style="font-size:clamp(22px,4vw,32px);font-weight:900;text-transform:uppercase;margin-bottom:20px">
+          Nossa <span style="color:var(--gold)">Trajetória</span>
+        </h2>
+
+        <div class="timeline reveal">
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-year">2018 — O Começo</div>
+            <div class="timeline-text">A Juninho Multi Marcas abre suas portas na Rua Castro Alves em Quijingue-BA, com a missão de oferecer moda masculina de qualidade acessível no nordeste.</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-year">2020 — Crescimento</div>
+            <div class="timeline-text">Expandimos nosso catálogo trazendo marcas internacionais como Nike, Lacoste e Boss para cada vez mais clientes da região.</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-year">2024 — Digital</div>
+            <div class="timeline-text">Lançamos nossa loja online para atender clientes em qualquer lugar, mantendo o mesmo atendimento personalizado que nos tornou referência.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MARCAS -->
+<section class="section" style="background:var(--black)">
+  <div class="container">
+    <h2 class="section-title reveal">Nossas <span>Marcas</span></h2>
+    <p class="section-subtitle reveal">Trabalhamos com as melhores do mundo</p>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:24px" id="brandsGrid">
+      <span style="background:var(--gray-800);border:1px solid var(--gray-700);border-radius:12px;padding:12px 24px;font-size:14px;font-weight:800;letter-spacing:2px;text-transform:uppercase" class="reveal">Nike</span>
+      <span style="background:var(--gray-800);border:1px solid var(--gray-700);border-radius:12px;padding:12px 24px;font-size:14px;font-weight:800;letter-spacing:2px;text-transform:uppercase" class="reveal reveal-delay-1">Lacoste</span>
+      <span style="background:var(--gray-800);border:1px solid var(--gray-700);border-radius:12px;padding:12px 24px;font-size:14px;font-weight:800;letter-spacing:2px;text-transform:uppercase" class="reveal reveal-delay-1">Zara</span>
+      <span style="background:var(--gray-800);border:1px solid var(--gray-700);border-radius:12px;padding:12px 24px;font-size:14px;font-weight:800;letter-spacing:2px;text-transform:uppercase" class="reveal reveal-delay-2">Boss</span>
+      <span style="background:var(--gray-800);border:1px solid var(--gray-700);border-radius:12px;padding:12px 24px;font-size:14px;font-weight:800;letter-spacing:2px;text-transform:uppercase" class="reveal reveal-delay-2">Hopers</span>
+      <span style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.3);border-radius:12px;padding:12px 24px;font-size:14px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--gold)" class="reveal reveal-delay-3">E Mais...</span>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- LOCALIZAÇÃO -->
+<section class="section" id="localizacao" style="background:var(--black)">
+  <div class="container">
+    <h2 class="section-title reveal">📍 Nossa <span>Localização</span></h2>
+    <p class="section-subtitle reveal">Venha nos visitar</p>
+    <div class="location-grid">
+      <div class="location-info">
+        <div class="location-card reveal">
+          <div class="location-icon">📍</div>
+          <div class="location-detail"><h4>Endereço</h4><p>Rua Castro Alves<br>Quijingue — Bahia</p></div>
+        </div>
+        <div class="location-card reveal reveal-delay-1">
+          <div class="location-icon">⏰</div>
+          <div class="location-detail"><h4>Horários de Atendimento</h4>
+            <div class="hours-grid" style="margin-top:10px">
+              <div class="hour-card"><div class="hour-emoji">🌅</div><div class="hour-time">09:30</div><div style="font-size:10px;color:var(--gray-500);margin:2px 0">às</div><div class="hour-time">12:00</div><div class="hour-label">Manhã</div></div>
+              <div class="hour-card"><div class="hour-emoji">☀️</div><div class="hour-time">14:30</div><div style="font-size:10px;color:var(--gray-500);margin:2px 0">às</div><div class="hour-time">18:00</div><div class="hour-label">Tarde</div></div>
+            </div>
+          </div>
+        </div>
+        <a href="https://wa.me/5575991748725" target="_blank" class="btn btn-gold reveal" style="margin-top:8px">📱 Falar no WhatsApp</a>
+      </div>
+      <div class="map-container reveal">
+        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15580.862!2d-39.0!3d-10.5!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zUXVpamlucXVlLCBCQQ!5e0!3m2!1spt-BR!2sbr!4v1" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTATO -->
+<section class="section" id="contato" style="background:var(--gray-900)">
+  <div class="container">
+    <h2 class="section-title reveal">💬 Entre em <span>Contato</span></h2>
+    <p class="section-subtitle reveal">Estamos prontos para te atender</p>
+    <div class="contact-grid">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <a href="https://wa.me/5575991748725" target="_blank" class="contact-method reveal">
+          <div class="contact-method-icon" style="background:rgba(37,211,102,0.1)">📱</div>
+          <div><h4 style="font-size:15px;font-weight:700;margin-bottom:3px">WhatsApp</h4><p style="font-size:13px;color:var(--gray-400)">(75) 99174-8725</p></div>
+          <span style="margin-left:auto;color:var(--gray-500)">→</span>
+        </a>
+        <a href="https://www.instagram.com/junninho_multimarcas" target="_blank" class="contact-method reveal reveal-delay-1">
+          <div class="contact-method-icon" style="background:rgba(225,48,108,0.1)">📸</div>
+          <div><h4 style="font-size:15px;font-weight:700;margin-bottom:3px">Instagram</h4><p style="font-size:13px;color:var(--gray-400)">@junninho_multimarcas</p></div>
+          <span style="margin-left:auto;color:var(--gray-500)">→</span>
+        </a>
+        <div class="contact-method reveal reveal-delay-2" style="cursor:default">
+          <div class="contact-method-icon" style="background:rgba(201,168,76,0.1)">⏰</div>
+          <div><h4 style="font-size:15px;font-weight:700;margin-bottom:3px">Horários</h4><p style="font-size:13px;color:var(--gray-400)">09:30–12:00 · 14:30–18:00</p></div>
+        </div>
+      </div>
+      <div class="reveal">
+        <div style="background:var(--gray-800);border:1px solid var(--gray-700);border-radius:var(--radius-lg);padding:28px">
+          <h3 style="font-size:18px;font-weight:800;margin-bottom:12px">Fale com a gente 👋</h3>
+          <p style="color:var(--gray-400);font-size:14px;line-height:1.7;margin-bottom:20px">
+            Dúvidas sobre produtos, tamanhos, preços ou entrega? Manda uma mensagem no WhatsApp! Respondemos rapidinho.
+          </p>
+          <a href="https://wa.me/5575991748725?text=Olá! Vim pelo site e gostaria de mais informações." target="_blank" class="btn btn-gold" style="width:100%;padding:14px">
+            📱 Enviar mensagem agora
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="js/carrinho.js"></script>
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+gsap.timeline()
+  .from('#h1', { x: -20, opacity: 0, duration: 0.5, ease: 'power3.out' })
+  .from('#h2', { y: 40, opacity: 0, duration: 0.7, ease: 'power3.out' }, '-=0.2')
+  .from('#h3', { y: 20, opacity: 0, duration: 0.5, ease: 'power3.out' }, '-=0.3');
+
+initReveal();
+renderFooter();
+</script>
+</body>
+</html>

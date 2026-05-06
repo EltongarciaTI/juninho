@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Produtos — Juninho Multi Marcas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .catalog-page { padding-top: 80px; min-height: 100vh; }
+    .catalog-hero {
+      background: var(--gray-900);
+      border-bottom: 1px solid var(--gray-800);
+      padding: 40px 0 32px;
+    }
+    .catalog-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+      padding: 32px 0;
+    }
+    .catalog-sidebar {
+      display: none;
+    }
+    .catalog-filters-mobile {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      scrollbar-width: none;
+      margin-bottom: 20px;
+    }
+    .catalog-filters-mobile::-webkit-scrollbar { display: none; }
+    .filter-pill {
+      flex-shrink: 0;
+      padding: 8px 16px;
+      border-radius: 24px;
+      border: 1px solid var(--gray-700);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--gray-300);
+      background: var(--gray-800);
+      cursor: pointer;
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+    .filter-pill:hover, .filter-pill.active {
+      border-color: var(--gold);
+      color: var(--gold);
+      background: rgba(201,168,76,0.08);
+    }
+    .catalog-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .results-count {
+      font-size: 12px;
+      color: var(--gray-400);
+      letter-spacing: 1px;
+    }
+    .search-catalog {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--gray-800);
+      border: 1px solid var(--gray-700);
+      border-radius: var(--radius);
+      padding: 0 14px;
+      flex: 1;
+      max-width: 300px;
+    }
+    .search-catalog input {
+      flex: 1;
+      background: none;
+      border: none;
+      color: var(--white);
+      font-size: 13px;
+      padding: 10px 0;
+      outline: none;
+      font-family: var(--font);
+    }
+    .search-catalog input::placeholder { color: var(--gray-500); }
+    .sort-select {
+      background: var(--gray-800);
+      border: 1px solid var(--gray-700);
+      border-radius: var(--radius);
+      padding: 9px 12px;
+      color: var(--white);
+      font-size: 12px;
+      font-family: var(--font);
+      outline: none;
+    }
+    .sort-select option { background: var(--gray-800); }
+    .load-more-wrap { text-align: center; padding: 32px 0; }
+    @media (min-width: 768px) {
+      .catalog-sidebar { display: block; }
+      .catalog-layout { grid-template-columns: 220px 1fr; }
+      .catalog-filters-mobile { display: none; }
+    }
+  </style>
+</head>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/components.js"></script>
+<script>renderNavbar();</script>
+
+<div class="catalog-page">
+  <!-- Hero da página -->
+  <div class="catalog-hero">
+    <div class="container">
+      <p id="pageHeroSince" style="font-size:10px;letter-spacing:3px;color:var(--gold);font-weight:700;text-transform:uppercase;margin-bottom:8px">👕 Catálogo</p>
+      <h1 id="pageHeroTitle" style="font-size:clamp(28px,6vw,48px);font-weight:900;text-transform:uppercase;letter-spacing:1px">
+        Todos os <span style="color:var(--gold)">Produtos</span>
+      </h1>
+      <p style="color:var(--gray-400);margin-top:8px;font-size:14px">Moda masculina premium — Nike, Lacoste, Zara, Boss e mais</p>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Filtros mobile (pills horizontais) -->
+    <div class="catalog-filters-mobile" id="filtersMobile" style="margin-top:20px">
+      <button class="filter-pill active" data-cat="">Todos</button>
+      <button class="filter-pill" data-cat="roupas">👕 Roupas</button>
+      <button class="filter-pill" data-cat="oculos">🕶️ Óculos</button>
+      <button class="filter-pill" data-cat="calcados">👟 Calçados</button>
+      <button class="filter-pill" data-cat="bones">🧢 Bonés</button>
+      <button class="filter-pill" data-cat="sandalias">🩴 Sandálias</button>
+      <button class="filter-pill" data-cat="shorts-praia">🩱 Shorts Praia</button>
+      <button class="filter-pill" data-cat="shorts-jeans">👖 Shorts Jeans</button>
+    </div>
+
+    <div class="catalog-layout">
+      <!-- Sidebar Desktop -->
+      <aside class="catalog-sidebar">
+        <div style="position:sticky;top:90px;display:flex;flex-direction:column;gap:20px">
+          <div>
+            <p style="font-size:10px;letter-spacing:2px;color:var(--gray-500);text-transform:uppercase;font-weight:700;margin-bottom:12px">Categorias</p>
+            <div id="sidebarCats" style="display:flex;flex-direction:column;gap:4px">
+              <button class="filter-pill active" data-cat="" style="border-radius:var(--radius);text-align:left;justify-content:flex-start">🔥 Todos</button>
+              <button class="filter-pill" data-cat="roupas" style="border-radius:var(--radius);text-align:left">👕 Roupas</button>
+              <button class="filter-pill" data-cat="oculos" style="border-radius:var(--radius);text-align:left">🕶️ Óculos</button>
+              <button class="filter-pill" data-cat="calcados" style="border-radius:var(--radius);text-align:left">👟 Calçados</button>
+              <button class="filter-pill" data-cat="bones" style="border-radius:var(--radius);text-align:left">🧢 Bonés</button>
+              <button class="filter-pill" data-cat="sandalias" style="border-radius:var(--radius);text-align:left">🩴 Sandálias</button>
+              <button class="filter-pill" data-cat="shorts-praia" style="border-radius:var(--radius);text-align:left">🩱 Shorts Praia</button>
+              <button class="filter-pill" data-cat="shorts-jeans" style="border-radius:var(--radius);text-align:left">👖 Shorts Jeans</button>
+            </div>
+          </div>
+          <div>
+            <p style="font-size:10px;letter-spacing:2px;color:var(--gray-500);text-transform:uppercase;font-weight:700;margin-bottom:12px">Marcas</p>
+            <div id="sidebarBrands" style="display:flex;flex-direction:column;gap:4px"></div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Conteúdo principal -->
+      <div>
+        <div class="catalog-toolbar">
+          <span class="results-count" id="resultsCount">Carregando...</span>
+          <div style="display:flex;gap:10px;align-items:center">
+            <div class="search-catalog">
+              <span style="color:var(--gray-500)">🔍</span>
+              <input type="text" id="searchInput" placeholder="Buscar produto...">
+            </div>
+            <select class="sort-select" id="sortSelect">
+              <option value="new">Mais novos</option>
+              <option value="price-asc">Menor preço</option>
+              <option value="price-desc">Maior preço</option>
+              <option value="name">A-Z</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="products-grid" id="productsGrid">
+          <div class="skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton-info"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div></div>
+          <div class="skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton-info"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div></div>
+          <div class="skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton-info"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div></div>
+          <div class="skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton-info"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div></div>
+        </div>
+        <div class="load-more-wrap" id="loadMoreWrap" style="display:none">
+          <button class="btn btn-outline" id="loadMoreBtn" onclick="loadMore()">Carregar mais produtos</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/carrinho.js"></script>
+<script src="js/produtos.js"></script>
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+let allProducts = [];
+let filteredProducts = [];
+let currentCat = '';
+let currentBrand = '';
+let currentSearch = '';
+let currentSort = 'new';
+let page = 0;
+const PER_PAGE = 12;
+
+async function init() {
+  // Verificar parâmetro da URL
+  const params = new URLSearchParams(location.search);
+  const catParam = params.get('cat');
+  if (catParam) {
+    currentCat = catParam;
+    document.querySelectorAll('.filter-pill').forEach(p => {
+      p.classList.toggle('active', p.dataset.cat === catParam);
+    });
+  }
+
+  await loadBrands();
+  await fetchProducts();
+
+  // Animação hero
+  gsap.from('#pageHeroTitle', { y: 30, opacity: 0, duration: 0.7, ease: 'power3.out' });
+
+  // Eventos filtros
+  document.querySelectorAll('.filter-pill').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll(`.filter-pill[data-cat]`).forEach(p => p.classList.remove('active'));
+      document.querySelectorAll(`.filter-pill[data-cat="${btn.dataset.cat}"]`).forEach(p => p.classList.add('active'));
+      currentCat = btn.dataset.cat || '';
+      currentBrand = '';
+      document.querySelectorAll('.filter-pill[data-brand]').forEach(p => p.classList.remove('active'));
+      applyFilters();
+    });
+  });
+
+  let searchTimer;
+  document.getElementById('searchInput').addEventListener('input', e => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => { currentSearch = e.target.value.toLowerCase(); applyFilters(); }, 250);
+  });
+
+  document.getElementById('sortSelect').addEventListener('change', e => {
+    currentSort = e.target.value;
+    applyFilters();
+  });
+}
+
+async function loadBrands() {
+  const { data } = await db.from('brands').select('*').order('name');
+  const cont = document.getElementById('sidebarBrands');
+  if (!cont || !data) return;
+  cont.innerHTML = data.map(b => `
+    <button class="filter-pill" data-brand="${b.id}" style="border-radius:var(--radius);text-align:left">${b.name}</button>
+  `).join('');
+  cont.querySelectorAll('.filter-pill').forEach(btn => {
+    btn.addEventListener('click', () => {
+      cont.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      currentBrand = btn.dataset.brand;
+      currentCat = '';
+      document.querySelectorAll('.filter-pill[data-cat]').forEach(p => p.classList.remove('active'));
+      applyFilters();
+    });
+  });
+}
+
+async function fetchProducts() {
+  const { data } = await db.from('products')
+    .select('*, categories(name,slug), brands(name,id)')
+    .eq('is_active', true)
+    .order('created_at', { ascending: false });
+  allProducts = data || [];
+  applyFilters();
+}
+
+function applyFilters() {
+  page = 0;
+  let result = [...allProducts];
+
+  if (currentCat) {
+    result = result.filter(p => p.categories?.slug === currentCat);
+  }
+  if (currentBrand) {
+    result = result.filter(p => p.brand_id === currentBrand || p.brands?.id === currentBrand);
+  }
+  if (currentSearch) {
+    result = result.filter(p =>
+      p.name.toLowerCase().includes(currentSearch) ||
+      (p.brands?.name || '').toLowerCase().includes(currentSearch)
+    );
+  }
+
+  // Sort
+  if (currentSort === 'price-asc') result.sort((a,b) => a.price - b.price);
+  else if (currentSort === 'price-desc') result.sort((a,b) => b.price - a.price);
+  else if (currentSort === 'name') result.sort((a,b) => a.name.localeCompare(b.name));
+  else result.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+
+  filteredProducts = result;
+  renderPage(true);
+}
+
+function renderPage(reset = false) {
+  const grid = document.getElementById('productsGrid');
+  const slice = filteredProducts.slice(page * PER_PAGE, (page + 1) * PER_PAGE);
+  document.getElementById('resultsCount').textContent = `${filteredProducts.length} produto${filteredProducts.length !== 1 ? 's' : ''} encontrado${filteredProducts.length !== 1 ? 's' : ''}`;
+
+  if (reset) {
+    if (filteredProducts.length === 0) {
+      grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--gray-500)"><div style="font-size:40px;margin-bottom:12px">😕</div><p>Nenhum produto encontrado</p></div>`;
+      document.getElementById('loadMoreWrap').style.display = 'none';
+      return;
+    }
+    grid.innerHTML = slice.map(buildProductCard).join('');
+    gsap.from('#productsGrid .product-card', { y: 30, opacity: 0, duration: 0.4, stagger: 0.06, ease: 'power3.out' });
+  } else {
+    slice.forEach(p => { grid.insertAdjacentHTML('beforeend', buildProductCard(p)); });
+    gsap.from('#productsGrid .product-card:nth-last-child(-n+12)', { y: 30, opacity: 0, duration: 0.4, stagger: 0.06, ease: 'power3.out' });
+  }
+
+  page++;
+  const hasMore = page * PER_PAGE < filteredProducts.length;
+  document.getElementById('loadMoreWrap').style.display = hasMore ? 'block' : 'none';
+  initReveal();
+}
+
+function loadMore() { renderPage(false); }
+
+init();
+renderFooter();
+</script>
+</body>
+</html>
