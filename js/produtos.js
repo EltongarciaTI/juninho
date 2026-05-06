@@ -39,7 +39,7 @@ function buildProductCard(p) {
     : `<span class="product-price">${formatPrice(p.price)}</span>`;
 
   return `
-    <div class="product-card reveal" data-id="${p.id}" onclick="openProductModal('${p.id}')">
+    <div class="product-card" data-id="${p.id}" onclick="openProductModal('${p.id}')">
       <div class="product-image">
         ${imgEl}
         ${tagsHtml ? `<div class="product-tags">${tagsHtml}</div>` : ''}
